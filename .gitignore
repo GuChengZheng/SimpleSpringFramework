@@ -1,0 +1,34 @@
+*.class
+
+#package file 忽略包文件
+*.war
+*.ear
+
+#kdiff3 ignore git工具，可以用于解决冲突
+*.orig
+
+#maven ignore 忽略target文件夹下的所有文件
+target/
+
+#ecplise ignore 忽略ecplsie配置文件
+.settings/
+.project
+.classpath
+
+#idea ignore
+.idea/
+/idea/
+*.ipr
+*.iml
+*.iws
+
+#temp file ignore 临时文件
+*.log
+*.cache
+*.diff
+*.patch
+*.tmp
+
+#system ignore
+.PS_Store
+Thumbs.db
