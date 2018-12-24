@@ -2,7 +2,9 @@ package MySpring.Utils;
 
 import org.springframework.context.annotation.Bean;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -13,14 +15,21 @@ import java.util.Map;
 public class Factory {
     private Map<String, BeanInstance> singleBeans = new HashMap<>();
 
-    public void init(BeanInstance bean){
-        singleBeans.put(bean.getId(), bean);
+    public void init(List<BeanInstance> beans){
+        beans.stream().forEach(bean -> {singleBeans.put(bean.getId(), bean);});
+
     }
 
     public Object getBean(String id) throws Exception{
         BeanInstance bean = singleBeans.get(id);
         Class clazz = Class.forName(bean.getClassName());
-        return clazz.newInstance();
+        Object object = clazz.newInstance();
+        for(Map.Entry<String, String> entry : bean.getPropertyMap().entrySet()) {
+            Field field = clazz.getDeclaredField(entry.getKey());
+            field.setAccessible(true);
+            field.set(object, entry.getValue());
+        }
+        return object;
     }
 
 }
