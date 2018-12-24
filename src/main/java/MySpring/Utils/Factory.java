@@ -17,9 +17,10 @@ public class Factory {
         singleBeans.put(bean.getId(), bean);
     }
 
-    public void getBean(String id){
+    public Object getBean(String id) throws Exception{
         BeanInstance bean = singleBeans.get(id);
-
+        Class clazz = Class.forName(bean.getClassName());
+        return clazz.newInstance();
     }
 
 }

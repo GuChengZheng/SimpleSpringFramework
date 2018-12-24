@@ -1,5 +1,7 @@
 package MySpring.Utils;
 
+import java.util.Map;
+
 /**
  * bean的实体类
  * @author: gucheng.zheng
@@ -17,6 +19,8 @@ public class BeanInstance {
      */
     private String className;
 
+    private Map<String, String> propertyMap;
+
     public String getId() {
         return id;
     }
@@ -31,5 +35,13 @@ public class BeanInstance {
 
     public void setClassName(String className) {
         this.className = className;
+    }
+
+    public Map<String, String> getPropertyMap() {
+        return propertyMap;
+    }
+
+    public void setPropertyMap(Map<String, String> propertyMap) {
+        this.propertyMap = propertyMap;
     }
 }
