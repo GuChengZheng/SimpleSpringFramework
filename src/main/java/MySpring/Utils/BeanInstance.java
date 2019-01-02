@@ -19,7 +19,15 @@ public class BeanInstance {
      */
     private String className;
 
+    /**
+     * 初始化属性值
+     */
     private Map<String, String> propertyMap;
+
+    /**
+     * 添加作用域
+     */
+    private ScopeType scopeType;
 
     public String getId() {
         return id;
@@ -43,5 +51,13 @@ public class BeanInstance {
 
     public void setPropertyMap(Map<String, String> propertyMap) {
         this.propertyMap = propertyMap;
+    }
+
+    public ScopeType getScopeType() {
+        return scopeType;
+    }
+
+    public void setScopeType(ScopeType scopeType) {
+        this.scopeType = scopeType;
     }
 }

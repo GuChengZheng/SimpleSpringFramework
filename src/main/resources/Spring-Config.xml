@@ -8,8 +8,10 @@
         http://www.springframework.org/schema/context
         http://www.springframework.org/schema/context/spring-context.xsd">
 
-    <bean id="student" class="MySpring.Beans.Student">
-        <property name="firstName" value="Wang"></property>
-    </bean>
+    <bean id="student" class="MySpring.Beans.Student"/>
+
+    <bean id="student1" class="MySpring.Beans.Student" scope="prototype"/>
+
+
 
 </beans>

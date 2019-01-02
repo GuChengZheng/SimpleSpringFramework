@@ -33,6 +33,5 @@ public class SpringTest {
         System.out.println(student);
         System.out.println(student.getFirstName());
 
-
     }
 }
