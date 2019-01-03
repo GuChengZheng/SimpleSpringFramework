@@ -11,36 +11,62 @@ import java.util.Map;
  * @create: 2018-12-23 23-07
  **/
 public class Factory {
+
     /**
      * 存储作用域为singleton的bean集合（默认情况下为singleton）
      */
-    private static Map<String, BeanInstance> singletonBeans = new HashMap<>();
+    private static Map<String, Object> singleBeans = new HashMap<>();
 
-    private static  Map<String, BeanInstance> prototypeBeans = new HashMap<>();
+    private static Map<String, BeanInstance> beans = new HashMap<>();
 
-    public void init(List<BeanInstance> beans){
-        beans.stream().forEach(bean -> {
-            switch (bean.getScopeType()){
-                case singleton:
-                    singletonBeans.put(bean.getId(), bean);
-                    break;
-                case prototype:
-                    prototypeBeans.put(bean.getId(), bean);
-                    break;
-            }
-        });
+    public static void init(List<BeanInstance> beans){
+       beans.forEach(bean -> {
+           if(null == bean.getScopeType())
+               bean.setScopeType(ScopeType.singleton);
+           Factory.beans.put(bean.getId(), bean);
+       });
     }
 
-    public Object getBean(String id) throws Exception{
-        BeanInstance bean = singletonBeans.get(id);
-        Class clazz = Class.forName(bean.getClassName());
-        Object object = clazz.newInstance();
-        for(Map.Entry<String, String> entry : bean.getPropertyMap().entrySet()) {
-            Field field = clazz.getDeclaredField(entry.getKey());
-            field.setAccessible(true);
-            field.set(object, entry.getValue());
+    public static Object getBean(String id){
+        Object obj = null;
+        BeanInstance bean = beans.get(id);
+        switch (bean.getScopeType()){
+            case singleton:
+                synchronized (Factory.class) {
+                    obj = singleBeans.get(bean.getId());
+                    if (null == obj) {
+                        obj = createInstance(bean);
+                        singleBeans.put(bean.getId(), obj);
+                    }
+                }
+                break;
+            case prototype:
+                obj = createInstance(bean);
+                break;
+        }
+        return obj;
+    }
+
+    /**
+     * 初始化实例对象
+     * @param bean
+     * @return
+     */
+    private static Object createInstance(BeanInstance bean){
+        Object object = null;
+        try {
+            Class clazz = Class.forName(bean.getClassName());
+            object = clazz.newInstance();
+            for(Map.Entry<String, String> entry : bean.getPropertyMap().entrySet()) {
+                Field field = clazz.getDeclaredField(entry.getKey());
+                field.setAccessible(true);
+                field.set(object, entry.getValue());
+            }
+        }catch (Exception e){
+            e.printStackTrace();
         }
         return object;
     }
+
 
 }
