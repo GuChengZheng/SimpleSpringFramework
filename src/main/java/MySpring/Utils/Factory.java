@@ -13,17 +13,22 @@ import java.util.Map;
 public class Factory {
 
     /**
-     * 存储作用域为singleton的bean集合（默认情况下为singleton）
+     * 存储作用域为singleton的bean实例（默认情况下为singleton）
      */
     private static Map<String, Object> singleBeans = new HashMap<>();
 
+    /**
+     * 存储bean信息
+     */
     private static Map<String, BeanInstance> beans = new HashMap<>();
 
     public static void init(List<BeanInstance> beans){
        beans.forEach(bean -> {
-           if(null == bean.getScopeType())
-               bean.setScopeType(ScopeType.singleton);
-           Factory.beans.put(bean.getId(), bean);
+           if(null == Factory.beans.get(bean.getId()) ) {
+               if (null == bean.getScopeType())
+                   bean.setScopeType(ScopeType.singleton);
+               Factory.beans.put(bean.getId(), bean);
+           }
        });
     }
 
