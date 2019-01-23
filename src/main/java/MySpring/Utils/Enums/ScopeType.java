@@ -1,4 +1,4 @@
-package MySpring.Utils;
+package MySpring.Utils.Enums;
 
 /**
  * 作用域枚举

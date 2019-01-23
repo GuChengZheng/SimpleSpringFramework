@@ -1,5 +1,7 @@
 package MySpring.Utils;
 
+import MySpring.Utils.Enums.ScopeType;
+
 import java.util.Map;
 
 /**

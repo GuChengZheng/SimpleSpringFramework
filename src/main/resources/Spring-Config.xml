@@ -10,12 +10,11 @@
 
     <!-- 作用域 -->
     <bean id="student" class="MySpring.Beans.Student"/>
-    <bean id="student1" class="MySpring.Beans.Student" scope="prototype"/>
+    <bean id="student1" class="MySpring.Beans.Student" scope="prototype" />
 
     <!-- 动态工厂和静态工厂 -->
     <bean id="dyFactory" class="Framework.Utils.DyFactory"/>
     <bean id="studentByDyFactory" factory-bean="dyFactory" factory-method="dyInitStudent"/>
     <bean id="studentByStaticFactory" class="Framework.Utils.StaticFactory" factory-method="staticInitStudent"/>
-
 
 </beans>
