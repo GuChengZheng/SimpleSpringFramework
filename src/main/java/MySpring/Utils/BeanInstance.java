@@ -27,9 +27,14 @@ public class BeanInstance {
     private Map<String, String> propertyMap;
 
     /**
-     * 添加作用域
+     * 作用域
      */
     private ScopeType scopeType;
+
+    /**
+     * 工厂属性
+     */
+    private FactoryAttribute factoryAttribute;
 
     public String getId() {
         return id;
@@ -61,5 +66,13 @@ public class BeanInstance {
 
     public void setScopeType(ScopeType scopeType) {
         this.scopeType = scopeType;
+    }
+
+    public FactoryAttribute getFactoryAttribute() {
+        return factoryAttribute;
+    }
+
+    public void setFactoryAttribute(FactoryAttribute factoryAttribute) {
+        this.factoryAttribute = factoryAttribute;
     }
 }

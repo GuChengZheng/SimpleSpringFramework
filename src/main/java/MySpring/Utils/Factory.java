@@ -24,7 +24,7 @@ public class Factory {
      */
     private static Map<String, BeanInstance> beans = new HashMap<>();
 
-    public static void init(List<BeanInstance> beans){
+    public void init(List<BeanInstance> beans){
        beans.forEach(bean -> {
            if(null == Factory.beans.get(bean.getId()) ) {
                if (null == bean.getScopeType())
@@ -34,7 +34,7 @@ public class Factory {
        });
     }
 
-    public static Object getBean(String id){
+    public Object getBean(String id){
         Object obj = null;
         BeanInstance bean = beans.get(id);
         switch (bean.getScopeType()){
@@ -59,20 +59,40 @@ public class Factory {
      * @param bean
      * @return
      */
-    private static Object createInstance(BeanInstance bean){
+    private Object createInstance(BeanInstance bean){
         Object object = null;
         try {
-            Class clazz = Class.forName(bean.getClassName());
-            object = clazz.newInstance();
-            for(Map.Entry<String, String> entry : bean.getPropertyMap().entrySet()) {
-                Field field = clazz.getDeclaredField(entry.getKey());
-                field.setAccessible(true);
-                field.set(object, entry.getValue());
-            }
+            object = initObj(bean);
+            assignAttribute(object, bean);
         }catch (Exception e){
             e.printStackTrace();
         }
         return object;
     }
+
+    private Object initObj(BeanInstance bean){
+        Object object = null;
+        try {
+            Class clazz = Class.forName(bean.getClassName());
+            object = clazz.newInstance();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return object;
+    }
+
+    private void assignAttribute(Object object, BeanInstance bean){
+        try {
+            Class clazz = Class.forName(bean.getClassName());
+            for(Map.Entry<String, String> entry : bean.getPropertyMap().entrySet()) {
+                Field field = clazz.getDeclaredField(entry.getKey());
+                field.setAccessible(true);
+                field.set(object, entry.getValue());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
 }

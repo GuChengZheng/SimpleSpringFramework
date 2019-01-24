@@ -1,5 +1,6 @@
 import MySpring.Beans.Student;
 import MySpring.Utils.BeanInstance;
+import MySpring.Utils.Enums.ScopeType;
 import MySpring.Utils.Factory;
 
 import java.util.ArrayList;
@@ -15,15 +16,24 @@ public class MySpringTest {
 
     public static void main(String[] args) throws Exception {
 
-        /*BeanInstance prototypeBean = new BeanInstance();
+        Factory factory = new Factory();
+
+        BeanInstance prototypeBean = new BeanInstance();
         prototypeBean.setClassName("MySpring.Beans.Student");
         prototypeBean.setId("student1");
         prototypeBean.setScopeType(ScopeType.prototype);
-        propertyMap = new HashMap<>();
+        Map<String, String> propertyMap = new HashMap<>();
         propertyMap.put("firstName", "Li");
-        prototypeBean.setPropertyMap(propertyMap);*/
+        prototypeBean.setPropertyMap(propertyMap);
 
-        List<BeanInstance> beans1 = new ArrayList<>();
+        List<BeanInstance> beans = new ArrayList<>();
+        beans.add(prototypeBean);
+
+        factory.init(beans);
+        Student student = (Student) factory.getBean("student1");
+        System.out.println(student.getFirstName());
+
+       /* List<BeanInstance> beans1 = new ArrayList<>();
         beans1.add(create());
         Factory.init(beans1);
 
@@ -56,7 +66,7 @@ public class MySpringTest {
         });
 
         thread1.run();
-        thread2.run();
+        thread2.run();*/
     }
 
     private static BeanInstance create(){
