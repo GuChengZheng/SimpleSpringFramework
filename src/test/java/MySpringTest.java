@@ -1,13 +1,3 @@
-import MySpring.Beans.Student;
-import MySpring.Utils.BeanInstance;
-import MySpring.Utils.Enums.ScopeType;
-import MySpring.Utils.Factory;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
  * @author: gucheng.zheng
  * @create: 2018-12-23 20-01
@@ -16,7 +6,7 @@ public class MySpringTest {
 
     public static void main(String[] args) throws Exception {
 
-        Factory factory = new Factory();
+        /*Factory factory = new Factory();
 
         BeanInstance prototypeBean = new BeanInstance();
         prototypeBean.setClassName("MySpring.Beans.Student");
@@ -31,7 +21,7 @@ public class MySpringTest {
 
         factory.init(beans);
         Student student = (Student) factory.getBean("student1");
-        System.out.println(student.getFirstName());
+        System.out.println(student.getFirstName());*/
 
        /* List<BeanInstance> beans1 = new ArrayList<>();
         beans1.add(create());
@@ -69,7 +59,7 @@ public class MySpringTest {
         thread2.run();*/
     }
 
-    private static BeanInstance create(){
+    /*private static BeanInstance create(){
         BeanInstance singletonBean = new BeanInstance();
         singletonBean.setClassName("MySpring.Beans.Student");
         singletonBean.setId("student");
@@ -77,5 +67,5 @@ public class MySpringTest {
         propertyMap.put("firstName", "Wang");
         singletonBean.setPropertyMap(propertyMap);
         return singletonBean;
-    }
+    }*/
 }

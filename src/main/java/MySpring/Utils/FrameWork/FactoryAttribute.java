@@ -1,4 +1,4 @@
-package MySpring.Utils;
+package MySpring.Utils.FrameWork;
 
 /**
  * 工厂属性

@@ -1,6 +1,6 @@
-package MySpring.Utils;
+package MySpring.Utils.FrameWork;
 
-import MySpring.Utils.Enums.ScopeType;
+import MySpring.Utils.FrameWork.Enums.ScopeType;
 
 import java.util.Map;
 
@@ -15,6 +15,11 @@ public class BeanInstance {
      * bean 唯一标识id
      */
     private String id;
+
+    /**
+     * 父类Bean Id
+     */
+    private String parentId;
 
     /**
      * 类完整路径
@@ -42,6 +47,14 @@ public class BeanInstance {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(String parentId) {
+        this.parentId = parentId;
     }
 
     public String getClassName() {
