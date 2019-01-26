@@ -28,6 +28,13 @@ public class Factory {
      */
     private static Map<String, BeanInstance> beans = new HashMap<>();
 
+    /**
+     * @author gucheng.zheng
+     * @description 根据Bean id获取实例
+     * @Param id
+     * @return java.lang.Object
+     * @date 2019/1/26 18:53
+     */
     public Object getBean(String id){
         Object obj = null;
         BeanInstance bean = beans.get(id);
@@ -45,13 +52,20 @@ public class Factory {
         return obj;
     }
 
-
+    /**
+     * @author gucheng.zheng
+     * @description 添加beans集合并初始化
+     * @Param beans
+     * @return void
+     * @date 2019/1/26 18:55
+     */
     public void init(List<BeanInstance> beans){
-
+        // 存储bean
         beans.forEach(bean ->{
             this.beans.put(bean.getId(), bean);
         });
 
+        // 初始化bean对象
         beans.forEach(bean -> {
             if(null != bean && (null == bean.getScopeType() || ScopeType.singleton.equals(bean.getScopeType())) ){
                 Object obj = this.instance(bean);
@@ -60,6 +74,13 @@ public class Factory {
         });
     }
 
+    /**
+     * @author gucheng.zheng
+     * @description 初始化bean
+     * @Param bean
+     * @return java.lang.Object
+     * @date 2019/1/26 18:57
+     */
     private Object instance(BeanInstance bean){
         Object obj = null;
         if(null != bean.getFactoryAttribute()){
@@ -73,10 +94,24 @@ public class Factory {
         return obj;
     }
 
+    /**
+     * @author gucheng.zheng
+     * @description 默认初始化bean
+     * @Param bean
+     * @return java.lang.Object
+     * @date 2019/1/26 19:01
+     */
     private Object defaultBeanInstance(BeanInstance bean){
         return this.beanInstance(bean.getClassName(), null);
     }
 
+    /**
+     * @author gucheng.zheng
+     * @description 使用工厂初始化bean
+     * @Param bean
+     * @return java.lang.Object
+     * @date 2019/1/26 19:01
+     */
     private Object factoryBeanInstance(BeanInstance bean){
         FactoryAttribute factoryAttribute = bean.getFactoryAttribute();
         Object obj = null;
@@ -95,6 +130,14 @@ public class Factory {
         return obj;
     }
 
+    /**
+     * @author gucheng.zheng
+     * @description 创建Bean
+     * @Param className
+     * @Param methodName
+     * @return java.lang.Object
+     * @date 2019/1/26 19:07
+     */
     private Object beanInstance(String className, String methodName){
         Object obj = null;
         try {
@@ -114,6 +157,14 @@ public class Factory {
         return obj;
     }
 
+    /**
+     * @author gucheng.zheng
+     * @description 属性赋值
+     * @Param object
+     * @Param bean 
+     * @return void
+     * @date 2019/1/26 19:10
+     */
     private void assignAttribute(Object object, BeanInstance bean){
         try {
             if(CollectionUtils.isEmpty(bean.getPropertyMap()) ){
@@ -129,37 +180,5 @@ public class Factory {
             e.printStackTrace();
         }
     }
-
-   /* private Object instance(BeanInstance bean) throws Exception{
-        Object object = null;
-        if(null == bean.getFactoryAttribute()) {
-            object = initObj(bean);
-        }else{
-            // 如果FactoryBean有值，说明使用的是动态工厂
-            if(StringUtils.isNotEmpty(bean.getFactoryAttribute().getFactoryBean()) ) {
-
-            }else{ // 否则使用静态工厂
-
-            }
-        }
-
-        assignAttribute(object, bean);
-        return object;
-    }
-
-    private Object initObj(BeanInstance bean) throws Exception{
-        Class clazz = Class.forName(bean.getClassName());
-        Object object = clazz.newInstance();
-        return object;
-    }
-
-    private void assignAttribute(Object object, BeanInstance bean) throws Exception{
-        Class clazz = Class.forName(bean.getClassName());
-        for(Map.Entry<String, String> entry : bean.getPropertyMap().entrySet()) {
-            Field field = clazz.getDeclaredField(entry.getKey());
-            field.setAccessible(true);
-            field.set(object, entry.getValue());
-        }
-    }*/
 
 }

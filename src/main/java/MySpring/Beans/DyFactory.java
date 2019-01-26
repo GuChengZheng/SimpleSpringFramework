@@ -1,6 +1,7 @@
 package MySpring.Beans;
 
 /**
+ * 动态工厂
  * @author: gucheng.zheng
  * @create: 2019-01-26 18-05
  **/
