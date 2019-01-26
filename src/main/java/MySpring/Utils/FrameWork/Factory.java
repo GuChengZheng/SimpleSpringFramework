@@ -2,8 +2,11 @@ package MySpring.Utils.FrameWork;
 
 import MySpring.Utils.FrameWork.Enums.ScopeType;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,92 +28,107 @@ public class Factory {
      */
     private static Map<String, BeanInstance> beans = new HashMap<>();
 
-    private void loadBean(List<BeanInstance> beans){
+    public Object getBean(String id){
+        Object obj = null;
+        BeanInstance bean = beans.get(id);
+        if(null == bean){
+            System.out.println("id为" + id + " 不存在");
+        }
+        switch (bean.getScopeType()){
+            case singleton:
+                obj = singleBeans.get(id);
+                break;
+            case prototype:
+                obj = this.instance(bean);
+                break;
+        }
+        return obj;
+    }
+
+
+    public void init(List<BeanInstance> beans){
+
+        beans.forEach(bean ->{
+            this.beans.put(bean.getId(), bean);
+        });
+
         beans.forEach(bean -> {
-            if(null == Factory.beans.get(bean.getId()) ) {
-                if (null == bean.getScopeType())
-                    bean.setScopeType(ScopeType.singleton);
-                Factory.beans.put(bean.getId(), bean);
+            if(null != bean && (null == bean.getScopeType() || ScopeType.singleton.equals(bean.getScopeType())) ){
+                Object obj = this.instance(bean);
+                singleBeans.put(bean.getId(), obj);
             }
         });
     }
 
-    public void init(String beanId){
-        BeanInstance bean = beans.get(beanId);
-        if(null != bean) {
-            if (StringUtils.isNotEmpty(bean.getParentId())) {
-                this.init(bean.getParentId());
-            } else {
-                this.instance(bean);
-            }
-        }
-    }
-
-    private void instance(BeanInstance bean){
+    private Object instance(BeanInstance bean){
+        Object obj = null;
         if(null != bean.getFactoryAttribute()){
-            this.factoryBeanInstance();
+            obj = this.factoryBeanInstance(bean);
         }else{
-            this.defaultBeanInstance();
+            obj = this.defaultBeanInstance(bean);
         }
+
+        // 初始化属性
+        this.assignAttribute(obj, bean);
+        return obj;
     }
 
-    private void defaultBeanInstance(){
-
+    private Object defaultBeanInstance(BeanInstance bean){
+        return this.beanInstance(bean.getClassName(), null);
     }
 
-    private void factoryBeanInstance(BeanInstance bean){
+    private Object factoryBeanInstance(BeanInstance bean){
         FactoryAttribute factoryAttribute = bean.getFactoryAttribute();
-        if(StringUtils.isNotEmpty(factoryAttribute.getFactoryBean()) ){
-            Object dyFactoryObj = this.getBean(factoryAttribute.getFactoryBean());
-            Class clazz = Class.forName(beans.get());
-            Method method = clazz.getMethod(factoryAttribute.getFactoryMethod());
-            Object obj = (Object)method.invoke(dyFactoryObj);
-
-        }else{
-            this.beanInstance();
+        Object obj = null;
+        try {
+            if (StringUtils.isNotEmpty(factoryAttribute.getFactoryBean())) {
+                Object dyFactoryObj = this.getBean(factoryAttribute.getFactoryBean() );
+                Class clazz = Class.forName(beans.get(factoryAttribute.getFactoryBean()).getClassName() );
+                Method method = clazz.getMethod(factoryAttribute.getFactoryMethod());
+                obj = method.invoke(dyFactoryObj);
+            } else {
+                obj = this.beanInstance(bean.getClassName(), factoryAttribute.getFactoryMethod());
+            }
+        }catch (Exception e){
+            e.printStackTrace();
         }
+        return obj;
     }
 
     private Object beanInstance(String className, String methodName){
         Object obj = null;
         try {
             Class clazz = Class.forName(className);
-            if(StringUtils.isNotEmpty() ) {
-                obj = clazz.newInstance();
-            }else{
+            obj = clazz.newInstance();
+            if(StringUtils.isNotEmpty(methodName) ) {
                 Method method = clazz.getDeclaredMethod(methodName);
+                if(Modifier.isStatic(clazz.getModifiers()) ){
+                    obj = method.invoke(null, null);
+                }else{
+                    obj = method.invoke(obj, null);
+                }
             }
         }catch (Exception e){
             e.printStackTrace();
         }
-
         return obj;
     }
 
-    private void assignAttribute(){
-
-    }
-
-    public Object getBean(String id){
-       /* Object obj = null;
-        BeanInstance bean = beans.get(id);
-        switch (bean.getScopeType()){
-            case singleton:
-                synchronized (Factory.class) {
-                    obj = singleBeans.get(bean.getId());
-                    if (null == obj) {
-                        obj = instance(bean);
-                        singleBeans.put(bean.getId(), obj);
-                    }
-                }
-                break;
-            case prototype:
-                obj = instance(bean);
-                break;
+    private void assignAttribute(Object object, BeanInstance bean){
+        try {
+            if(CollectionUtils.isEmpty(bean.getPropertyMap()) ){
+                return;
+            }
+            Class clazz = Class.forName(object.getClass().getName());
+            for (Map.Entry<String, String> entry : bean.getPropertyMap().entrySet()) {
+                Field field = clazz.getDeclaredField(entry.getKey());
+                field.setAccessible(true);
+                field.set(object, entry.getValue());
+            }
+        }catch (Exception e){
+            e.printStackTrace();
         }
-        return obj;*/
     }
-
 
    /* private Object instance(BeanInstance bean) throws Exception{
         Object object = null;

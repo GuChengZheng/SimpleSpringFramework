@@ -17,11 +17,6 @@ public class BeanInstance {
     private String id;
 
     /**
-     * 父类Bean Id
-     */
-    private String parentId;
-
-    /**
      * 类完整路径
      */
     private String className;
@@ -34,7 +29,7 @@ public class BeanInstance {
     /**
      * 作用域
      */
-    private ScopeType scopeType;
+    private ScopeType scopeType = ScopeType.singleton;
 
     /**
      * 工厂属性
@@ -47,14 +42,6 @@ public class BeanInstance {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getParentId() {
-        return parentId;
-    }
-
-    public void setParentId(String parentId) {
-        this.parentId = parentId;
     }
 
     public String getClassName() {
