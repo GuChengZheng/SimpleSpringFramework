@@ -117,10 +117,11 @@ public class Factory {
         Object obj = null;
         try {
             if (StringUtils.isNotEmpty(factoryAttribute.getFactoryBean())) {
-                Object dyFactoryObj = this.getBean(factoryAttribute.getFactoryBean() );
+                /*Object dyFactoryObj = this.getBean(factoryAttribute.getFactoryBean() );
                 Class clazz = Class.forName(beans.get(factoryAttribute.getFactoryBean()).getClassName() );
                 Method method = clazz.getMethod(factoryAttribute.getFactoryMethod());
-                obj = method.invoke(dyFactoryObj);
+                obj = method.invoke(dyFactoryObj);*/
+                obj = this.beanInstance(beans.get(factoryAttribute.getFactoryBean()).getClassName(), factoryAttribute.getFactoryMethod());
             } else {
                 obj = this.beanInstance(bean.getClassName(), factoryAttribute.getFactoryMethod());
             }
