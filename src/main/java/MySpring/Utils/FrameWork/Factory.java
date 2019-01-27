@@ -67,9 +67,8 @@ public class Factory {
 
         // 初始化bean对象
         beans.forEach(bean -> {
-            if(null != bean && (null == bean.getScopeType() || ScopeType.singleton.equals(bean.getScopeType())) ){
-                Object obj = this.instance(bean);
-                singleBeans.put(bean.getId(), obj);
+            if(!singleBeans.containsKey(bean.getId()) ) {
+                this.instance(bean);
             }
         });
     }
@@ -82,7 +81,11 @@ public class Factory {
      * @date 2019/1/26 18:57
      */
     private Object instance(BeanInstance bean){
-        Object obj = null;
+        Object obj = singleBeans.get(bean.getId());
+        if(null != obj){
+            return obj;
+        }
+
         if(null != bean.getFactoryAttribute()){
             obj = this.factoryBeanInstance(bean);
         }else{
@@ -91,6 +94,11 @@ public class Factory {
 
         // 初始化属性
         this.assignAttribute(obj, bean);
+
+        // 存储bean
+        if(null != bean && (null == bean.getScopeType() || ScopeType.singleton.equals(bean.getScopeType())) ) {
+            singleBeans.put(bean.getId(), obj);
+        }
         return obj;
     }
 
@@ -117,11 +125,13 @@ public class Factory {
         Object obj = null;
         try {
             if (StringUtils.isNotEmpty(factoryAttribute.getFactoryBean())) {
-                /*Object dyFactoryObj = this.getBean(factoryAttribute.getFactoryBean() );
-                Class clazz = Class.forName(beans.get(factoryAttribute.getFactoryBean()).getClassName() );
+                // 如果是动态工厂，则需要先初始化
+                BeanInstance factoryBean = beans.get(bean.getFactoryAttribute().getFactoryBean());
+                Object dyFactoryObj = this.instance(factoryBean);
+                Class clazz = Class.forName(factoryBean.getClassName() );
                 Method method = clazz.getMethod(factoryAttribute.getFactoryMethod());
-                obj = method.invoke(dyFactoryObj);*/
-                obj = this.beanInstance(beans.get(factoryAttribute.getFactoryBean()).getClassName(), factoryAttribute.getFactoryMethod());
+                obj = method.invoke(dyFactoryObj);
+                //obj = this.beanInstance(beans.get(factoryAttribute.getFactoryBean()).getClassName(), factoryAttribute.getFactoryMethod());
             } else {
                 obj = this.beanInstance(bean.getClassName(), factoryAttribute.getFactoryMethod());
             }
