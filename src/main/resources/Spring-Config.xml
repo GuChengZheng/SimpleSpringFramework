@@ -9,7 +9,9 @@
         http://www.springframework.org/schema/context/spring-context.xsd">
 
     <!-- 作用域 -->
-    <bean id="student" class="MySpring.Beans.Student" init-method="init" destroy-method="destory"/>
+    <bean id="student" class="MySpring.Beans.Student" init-method="init" destroy-method="destory">
+        <property name="firstName" value="LiMei"/>
+    </bean>
     <!--<bean id="student1" class="MySpring.Beans.Student" scope="prototype" />-->
 
     <!-- 动态工厂和静态工厂 -->

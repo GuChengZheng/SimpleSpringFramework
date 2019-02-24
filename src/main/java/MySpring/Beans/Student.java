@@ -14,6 +14,7 @@ public class Student {
     }
 
     public void setFirstName(String firstName) {
+        System.out.println("setFirstName...");
         this.firstName = firstName;
     }
 
@@ -22,15 +23,19 @@ public class Student {
     }
 
     public void setLastName(String lastName) {
+        System.out.println("setLastName...");
         this.lastName = lastName;
     }
 
     public void init(){
         System.out.println("init....");
-        new Student();
     }
 
     public void destory(){
         System.out.println("destory...");
+    }
+
+    public Student() {
+        System.out.println("new Student()...");
     }
 }

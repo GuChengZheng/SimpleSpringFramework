@@ -9,8 +9,8 @@ public class FrameworkTest {
 
         Student stu = (Student) context.getBean("student");
         System.out.println(stu);
-        Student stu1 = (Student) context.getBean("student1");
-        System.out.println(stu1);
+        /*Student stu1 = (Student) context.getBean("student1");
+        System.out.println(stu1);*/
 
         // 动态和静态工厂
         /*Student stuDyFactory = (Student) context.getBean("studentByDyFactory");

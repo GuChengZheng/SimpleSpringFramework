@@ -1,5 +1,6 @@
 package MySpring.Utils.FrameWork;
 
+import MySpring.Utils.FrameWork.Enums.BeanPostType;
 import MySpring.Utils.FrameWork.Enums.ScopeType;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
@@ -27,6 +28,11 @@ public class Factory {
      * 存储bean信息
      */
     private static Map<String, BeanInstance> beans = new HashMap<>();
+
+    /**
+     * 存储beanpost处理器
+     */
+    private static Map<String, Object> beanPosts = new HashMap<>();
 
     /**
      * @author gucheng.zheng
@@ -67,7 +73,7 @@ public class Factory {
 
         // 初始化bean对象
         beans.forEach(bean -> {
-            if(!singleBeans.containsKey(bean.getId()) ) {
+            if (!singleBeans.containsKey(bean.getId())) {
                 this.instance(bean);
             }
         });
@@ -86,6 +92,7 @@ public class Factory {
             return obj;
         }
 
+        // 创建bean对象
         if(null != bean.getFactoryAttribute()){
             obj = this.factoryBeanInstance(bean);
         }else{
@@ -94,6 +101,15 @@ public class Factory {
 
         // 初始化属性
         this.assignAttribute(obj, bean);
+
+        // beanpost处理器，只有不是beanpost接口的类才能调用beanpost方法
+        if(!obj.getClass().isAssignableFrom(BeanPost.class)) {
+            // beanpost before
+            obj = this.beanpost(obj, bean, BeanPostType.BEFORE);
+
+            // beanpost after
+            obj = this.beanpost(obj, bean, BeanPostType.AFTER);
+        }
 
         // 存储bean
         if(null != bean && (null == bean.getScopeType() || ScopeType.singleton.equals(bean.getScopeType())) ) {
@@ -190,6 +206,36 @@ public class Factory {
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    /**
+     * @author gucheng.zheng
+     * @description BeanPost处理器
+     * @Param obj
+     * @return void
+     * @date 2019/2/24 20:47
+     */
+    private Object beanpost(Object obj, BeanInstance bean, BeanPostType beanPostType){
+        Class[] interfaces = obj.getClass().getInterfaces();
+        // 是否实现BeanPost接口
+        boolean isImplBeanPost = false;
+        for (Class clazz : interfaces) {
+            if (BeanPost.class.isAssignableFrom(clazz) ) {
+                isImplBeanPost = true;
+                break;
+            }
+        }
+
+        if(isImplBeanPost){
+            switch (beanPostType){
+                case BEFORE:
+                    return ((BeanPost) obj).postProcessBeforeInstantiation(obj, bean.getId());
+                case AFTER:
+                    return ((BeanPost) obj).postProcessAfterInstantiation(obj, bean.getId());
+            }
+        }
+
+        return obj;
     }
 
 }

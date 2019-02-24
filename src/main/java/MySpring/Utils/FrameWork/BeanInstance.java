@@ -22,6 +22,7 @@ public class BeanInstance {
     private String className;
 
     /**
+     *
      * 初始化属性值
      */
     private Map<String, String> propertyMap;

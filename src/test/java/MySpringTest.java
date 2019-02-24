@@ -1,12 +1,8 @@
-import MySpring.Beans.Student;
 import MySpring.Utils.FrameWork.BeanInstance;
 import MySpring.Utils.FrameWork.Factory;
-import MySpring.Utils.FrameWork.FactoryAttribute;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author: gucheng.zheng
@@ -15,9 +11,21 @@ import java.util.Map;
 public class MySpringTest {
 
     public static void main(String[] args) throws Exception {
+
         Factory factory = new Factory();
         List<BeanInstance> beans = new ArrayList<>();
 
+        BeanInstance bean1 = new BeanInstance();
+        bean1.setClassName("MySpring.Beans.Student");
+        bean1.setId("student1");
+        beans.add(bean1);
+
+        BeanInstance bean2 = new BeanInstance();
+        bean2.setClassName("MySpring.Beans.MyBeanPostImpl");
+        bean2.setId("MyBeanPost");
+        beans.add(bean2);
+
+        /*
         // DyFactory
         BeanInstance dyFactoryBean = new BeanInstance();
         dyFactoryBean.setId("factory");
@@ -63,7 +71,7 @@ public class MySpringTest {
         System.out.println(stu1 + "\t" + stu1.getFirstName());
 
         Student stu2 = (Student) factory.getBean("student2");
-        System.out.println(stu2 + "\t" + stu2.getFirstName());
+        System.out.println(stu2 + "\t" + stu2.getFirstName());*/
 
 
        /* List<BeanInstance> beans1 = new ArrayList<>();
