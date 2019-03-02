@@ -1,3 +1,4 @@
+import MySpring.Beans.Student;
 import MySpring.Utils.FrameWork.BeanInstance;
 import MySpring.Utils.FrameWork.Factory;
 
@@ -24,6 +25,16 @@ public class MySpringTest {
         bean2.setClassName("MySpring.Beans.MyBeanPostImpl");
         bean2.setId("MyBeanPost");
         beans.add(bean2);
+
+        BeanInstance bean3 = new BeanInstance();
+        bean3.setClassName("MySpring.Beans.MyBeanPostImpl2");
+        bean3.setId("MyBeanPost2");
+        beans.add(bean3);
+
+        factory.init(beans);
+
+        Student stu = (Student) factory.getBean("student1");
+        System.out.println(stu);
 
         /*
         // DyFactory

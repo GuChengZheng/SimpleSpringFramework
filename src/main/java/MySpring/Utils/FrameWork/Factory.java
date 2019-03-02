@@ -45,14 +45,15 @@ public class Factory {
         Object obj = null;
         BeanInstance bean = beans.get(id);
         if(null == bean){
-            System.out.println("id为" + id + " 不存在");
+            System.out.println("id为 " + id + " 不存在");
+            return null;
         }
         switch (bean.getScopeType()){
             case singleton:
                 obj = singleBeans.get(id);
                 break;
             case prototype:
-                obj = this.instance(bean);
+                obj = this.beanInstance(bean);
                 break;
         }
         return obj;
@@ -71,10 +72,15 @@ public class Factory {
             this.beans.put(bean.getId(), bean);
         });
 
+        // beanPost 初始化
+        beans.forEach(bean -> {
+            this.beanPostInit(bean);
+        });
+
         // 初始化bean对象
         beans.forEach(bean -> {
             if (!singleBeans.containsKey(bean.getId())) {
-                this.instance(bean);
+                this.beanInstance(bean);
             }
         });
     }
@@ -86,36 +92,41 @@ public class Factory {
      * @return java.lang.Object
      * @date 2019/1/26 18:57
      */
-    private Object instance(BeanInstance bean){
-        Object obj = singleBeans.get(bean.getId());
-        if(null != obj){
+    private Object beanInstance(BeanInstance bean){
+        try {
+            Object obj = singleBeans.get(bean.getId());
+            if (null != obj) {
+                return obj;
+            }
+
+            // 创建bean对象
+            if (null != bean.getFactoryAttribute()) {
+                obj = this.factoryBeanInstance(bean);
+            } else {
+                obj = this.defaultBeanInstance(bean);
+            }
+
+            // 初始化属性
+            this.assignAttribute(obj, bean);
+
+            // beanPost处理器，只有不是beanPost接口的类才能调用beanPost方法
+            if (!BeanPost.class.isAssignableFrom(obj.getClass())) {
+                // beanPost before
+                this.beanPost(obj, bean.getId(), BeanPostType.BEFORE);
+
+                // beanPost after
+                this.beanPost(obj, bean.getId(), BeanPostType.AFTER);
+            }
+
+            // 存储bean
+            if (null != bean && (null == bean.getScopeType() || ScopeType.singleton.equals(bean.getScopeType()))) {
+                singleBeans.put(bean.getId(), obj);
+            }
             return obj;
+        }catch (Exception e){
+            e.printStackTrace();
         }
-
-        // 创建bean对象
-        if(null != bean.getFactoryAttribute()){
-            obj = this.factoryBeanInstance(bean);
-        }else{
-            obj = this.defaultBeanInstance(bean);
-        }
-
-        // 初始化属性
-        this.assignAttribute(obj, bean);
-
-        // beanpost处理器，只有不是beanpost接口的类才能调用beanpost方法
-        if(!obj.getClass().isAssignableFrom(BeanPost.class)) {
-            // beanpost before
-            obj = this.beanpost(obj, bean, BeanPostType.BEFORE);
-
-            // beanpost after
-            obj = this.beanpost(obj, bean, BeanPostType.AFTER);
-        }
-
-        // 存储bean
-        if(null != bean && (null == bean.getScopeType() || ScopeType.singleton.equals(bean.getScopeType())) ) {
-            singleBeans.put(bean.getId(), obj);
-        }
-        return obj;
+        return null;
     }
 
     /**
@@ -125,7 +136,7 @@ public class Factory {
      * @return java.lang.Object
      * @date 2019/1/26 19:01
      */
-    private Object defaultBeanInstance(BeanInstance bean){
+    private Object defaultBeanInstance(BeanInstance bean) throws Exception{
         return this.beanInstance(bean.getClassName(), null);
     }
 
@@ -136,23 +147,20 @@ public class Factory {
      * @return java.lang.Object
      * @date 2019/1/26 19:01
      */
-    private Object factoryBeanInstance(BeanInstance bean){
+    private Object factoryBeanInstance(BeanInstance bean) throws Exception{
         FactoryAttribute factoryAttribute = bean.getFactoryAttribute();
         Object obj = null;
-        try {
-            if (StringUtils.isNotEmpty(factoryAttribute.getFactoryBean())) {
-                // 如果是动态工厂，则需要先初始化
-                BeanInstance factoryBean = beans.get(bean.getFactoryAttribute().getFactoryBean());
-                Object dyFactoryObj = this.instance(factoryBean);
-                Class clazz = Class.forName(factoryBean.getClassName() );
-                Method method = clazz.getMethod(factoryAttribute.getFactoryMethod());
-                obj = method.invoke(dyFactoryObj);
-                //obj = this.beanInstance(beans.get(factoryAttribute.getFactoryBean()).getClassName(), factoryAttribute.getFactoryMethod());
-            } else {
-                obj = this.beanInstance(bean.getClassName(), factoryAttribute.getFactoryMethod());
-            }
-        }catch (Exception e){
-            e.printStackTrace();
+
+        if (StringUtils.isNotEmpty(factoryAttribute.getFactoryBean())) {
+            // 如果是动态工厂，则需要先初始化
+            BeanInstance factoryBean = beans.get(bean.getFactoryAttribute().getFactoryBean());
+            Object dyFactoryObj = this.beanInstance(factoryBean);
+            Class clazz = Class.forName(factoryBean.getClassName() );
+            Method method = clazz.getMethod(factoryAttribute.getFactoryMethod());
+            obj = method.invoke(dyFactoryObj);
+            //obj = this.beanInstance(beans.get(factoryAttribute.getFactoryBean()).getClassName(), factoryAttribute.getFactoryMethod());
+        } else {
+            obj = this.beanInstance(bean.getClassName(), factoryAttribute.getFactoryMethod());
         }
         return obj;
     }
@@ -165,21 +173,18 @@ public class Factory {
      * @return java.lang.Object
      * @date 2019/1/26 19:07
      */
-    private Object beanInstance(String className, String methodName){
+    private Object beanInstance(String className, String methodName) throws Exception{
         Object obj = null;
-        try {
-            Class clazz = Class.forName(className);
-            obj = clazz.newInstance();
-            if(StringUtils.isNotEmpty(methodName) ) {
-                Method method = clazz.getDeclaredMethod(methodName);
-                if(Modifier.isStatic(clazz.getModifiers()) ){
-                    obj = method.invoke(null, null);
-                }else{
-                    obj = method.invoke(obj, null);
-                }
+        Class clazz = Class.forName(className);
+        obj = clazz.newInstance();
+        if(StringUtils.isNotEmpty(methodName) ) {
+            Method method = clazz.getDeclaredMethod(methodName);
+            // 判断是否为静态方法
+            if(Modifier.isStatic(clazz.getModifiers()) ){
+                obj = method.invoke(null, null);
+            }else{
+                obj = method.invoke(obj, null);
             }
-        }catch (Exception e){
-            e.printStackTrace();
         }
         return obj;
     }
@@ -192,16 +197,34 @@ public class Factory {
      * @return void
      * @date 2019/1/26 19:10
      */
-    private void assignAttribute(Object object, BeanInstance bean){
+    private void assignAttribute(Object object, BeanInstance bean) throws Exception{
+        if(CollectionUtils.isEmpty(bean.getPropertyMap()) ){
+            return;
+        }
+        Class clazz = Class.forName(object.getClass().getName());
+        for (Map.Entry<String, String> entry : bean.getPropertyMap().entrySet()) {
+            Field field = clazz.getDeclaredField(entry.getKey());
+            field.setAccessible(true);
+            field.set(object, entry.getValue());
+        }
+    }
+
+
+    /**
+     * @author gucheng.zheng
+     * @description beanPost 初始化
+     * @Param bean
+     * @return void
+     * @date 2019/3/2 17:13
+     */
+    private void beanPostInit(BeanInstance bean){
         try {
-            if(CollectionUtils.isEmpty(bean.getPropertyMap()) ){
-                return;
-            }
-            Class clazz = Class.forName(object.getClass().getName());
-            for (Map.Entry<String, String> entry : bean.getPropertyMap().entrySet()) {
-                Field field = clazz.getDeclaredField(entry.getKey());
-                field.setAccessible(true);
-                field.set(object, entry.getValue());
+            Class clazz = Class.forName(bean.getClassName());
+            // beanPost 初始化
+            if (BeanPost.class.isAssignableFrom(clazz)) {
+                Object obj = this.defaultBeanInstance(bean);
+                beanPosts.put(bean.getId(), obj);
+                singleBeans.put(bean.getId(), obj);
             }
         }catch (Exception e){
             e.printStackTrace();
@@ -211,31 +234,31 @@ public class Factory {
     /**
      * @author gucheng.zheng
      * @description BeanPost处理器
-     * @Param obj
+     * @Param targetObj
+     * @Param id
+     * @Param beanPostType
      * @return void
-     * @date 2019/2/24 20:47
+     * @date 2019/3/2 17:22
      */
-    private Object beanpost(Object obj, BeanInstance bean, BeanPostType beanPostType){
-        Class[] interfaces = obj.getClass().getInterfaces();
-        // 是否实现BeanPost接口
-        boolean isImplBeanPost = false;
-        for (Class clazz : interfaces) {
-            if (BeanPost.class.isAssignableFrom(clazz) ) {
-                isImplBeanPost = true;
+    private void beanPost(Object targetObj, String id, BeanPostType beanPostType){
+        switch (beanPostType) {
+            case BEFORE:
+                beanPosts.values().forEach(obj -> {
+                    Object tmp = ((BeanPost)obj).postProcessBeforeInstantiation(targetObj, id);
+                    if(singleBeans.containsKey(id)){
+                        singleBeans.put(id, tmp);
+                    }
+                });
                 break;
-            }
+            case AFTER:
+                beanPosts.values().forEach(obj -> {
+                    Object tmp = ((BeanPost)obj).postProcessAfterInstantiation(targetObj, id);
+                    if(singleBeans.containsKey(id)){
+                        singleBeans.put(id, tmp);
+                    }
+                });
+                break;
         }
-
-        if(isImplBeanPost){
-            switch (beanPostType){
-                case BEFORE:
-                    return ((BeanPost) obj).postProcessBeforeInstantiation(obj, bean.getId());
-                case AFTER:
-                    return ((BeanPost) obj).postProcessAfterInstantiation(obj, bean.getId());
-            }
-        }
-
-        return obj;
     }
 
 }
