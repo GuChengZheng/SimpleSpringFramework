@@ -176,7 +176,6 @@ public class Factory {
     private Object beanInstance(String className, String methodName) throws Exception{
         Object obj = null;
         Class clazz = Class.forName(className);
-        obj = clazz.newInstance();
         if(StringUtils.isNotEmpty(methodName) ) {
             Method method = clazz.getDeclaredMethod(methodName);
             // 判断是否为静态方法
@@ -185,6 +184,8 @@ public class Factory {
             }else{
                 obj = method.invoke(obj, null);
             }
+        }else{
+            obj = clazz.newInstance();
         }
         return obj;
     }
