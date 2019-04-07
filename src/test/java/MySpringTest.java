@@ -3,7 +3,9 @@ import MySpring.Utils.FrameWork.BeanInstance;
 import MySpring.Utils.FrameWork.Factory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author: gucheng.zheng
@@ -19,6 +21,10 @@ public class MySpringTest {
         BeanInstance bean1 = new BeanInstance();
         bean1.setClassName("MySpring.Beans.Student");
         bean1.setId("student1");
+        Map<String, String> propertyMap1 = new HashMap<>();
+        propertyMap1.put("firstName", "Li");
+        propertyMap1.put("123", "Li");
+        bean1.setPropertyMap(propertyMap1);
         beans.add(bean1);
 
         BeanInstance bean2 = new BeanInstance();
@@ -35,6 +41,7 @@ public class MySpringTest {
 
         Student stu = (Student) factory.getBean("student1");
         System.out.println(stu);
+        System.out.println(stu.getFirstName());
 
         /*
         // DyFactory

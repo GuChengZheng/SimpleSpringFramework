@@ -5,7 +5,6 @@ import MySpring.Utils.FrameWork.Enums.ScopeType;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
@@ -33,6 +32,11 @@ public class Factory {
      * 存储beanpost处理器
      */
     private static Map<String, Object> beanPosts = new HashMap<>();
+
+    /**
+     * set方法前缀
+     */
+    private static String SET_PREFIX = "set";
 
     /**
      * @author gucheng.zheng
@@ -150,16 +154,18 @@ public class Factory {
     private Object factoryBeanInstance(BeanInstance bean) throws Exception{
         FactoryAttribute factoryAttribute = bean.getFactoryAttribute();
         Object obj = null;
-
+        // 如果是动态工厂
         if (StringUtils.isNotEmpty(factoryAttribute.getFactoryBean())) {
-            // 如果是动态工厂，则需要先初始化
+            // 先初始化动态工厂
             BeanInstance factoryBean = beans.get(bean.getFactoryAttribute().getFactoryBean());
             Object dyFactoryObj = this.beanInstance(factoryBean);
             Class clazz = Class.forName(factoryBean.getClassName() );
+            // 调用动态工厂初始化bean
             Method method = clazz.getMethod(factoryAttribute.getFactoryMethod());
             obj = method.invoke(dyFactoryObj);
             //obj = this.beanInstance(beans.get(factoryAttribute.getFactoryBean()).getClassName(), factoryAttribute.getFactoryMethod());
         } else {
+            // 如果是静态工厂
             obj = this.beanInstance(bean.getClassName(), factoryAttribute.getFactoryMethod());
         }
         return obj;
@@ -204,9 +210,24 @@ public class Factory {
         }
         Class clazz = Class.forName(object.getClass().getName());
         for (Map.Entry<String, String> entry : bean.getPropertyMap().entrySet()) {
-            Field field = clazz.getDeclaredField(entry.getKey());
+            // 先获取域对象，然后直接赋值。但是这样的处理有问题，应该根据set方法进行反射。
+            /*Field field = clazz.getDeclaredField(entry.getKey());
             field.setAccessible(true);
-            field.set(object, entry.getValue());
+            field.set(object, entry.getValue());*/
+
+            // 通过set方法反射
+            String methodName = SET_PREFIX + MyStringUtils.upperFirst(entry.getKey());
+            Method[] methods = clazz.getMethods();
+            boolean isContainMethod = false;
+            for (Method method : methods) {
+                if (methodName.equals(method.getName())) {
+                    isContainMethod = true;
+                    method.invoke(object, entry.getValue());
+                }
+            }
+            if (!isContainMethod) {
+                System.out.println("beanId 为 " + bean.getId() + "，域为" + entry.getKey() + " 没有相应的set方法，请检查！！");
+            }
         }
     }
 
